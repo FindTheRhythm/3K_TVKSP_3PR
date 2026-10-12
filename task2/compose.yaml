@@ -1,0 +1,48 @@
+
+services:
+  db:
+    image: postgres:16
+    container_name: tvksp-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: practice3
+      POSTGRES_USER: practice_user
+      POSTGRES_PASSWORD: practice_password_2026
+
+    ports:
+      - "5433:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U practice_user -d practice3
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    image: tvksp-spring-app:1.0
+    container_name: tvksp-spring-app
+
+    restart: unless-stopped
+
+    ports:
+      - "8081:8080"
+
+    environment:
+      DB_PASSWORD: practice_password_2026
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
